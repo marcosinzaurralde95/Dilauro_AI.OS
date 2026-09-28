@@ -1,0 +1,6 @@
+{
+  "name": "Dilauro AI-OS",
+  "description": "Adaptive, AI-native operating system dashboard featuring D-Kernel ML scheduler, SynapseFS semantic filesystem, Capsule sandbox runtime, and Neural Shield.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
