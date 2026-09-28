@@ -61,6 +61,7 @@ fun CapsuleStatusBadge(status: CapsuleStatus, modifier: Modifier = Modifier) {
         CapsuleStatus.IDLE -> Triple("IDLE", TextSecondary, CardSurfaceHighlight)
         CapsuleStatus.PAUSED -> Triple("PAUSED", WarningAmber, Color(0xFF451A03))
         CapsuleStatus.MIGRATING -> Triple("MIGRATING", NeonCyan, Color(0xFF083344))
+        CapsuleStatus.TERMINATED -> Triple("TERMINATED", ThreatCrimson, Color(0xFF450A0A))
     }
     MetricBadge(text = text, textColor = color, backgroundColor = bg, modifier = modifier)
 }

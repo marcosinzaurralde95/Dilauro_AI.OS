@@ -22,9 +22,11 @@ import com.example.dilauro_aios.ui.theme.DilauroAIOSTheme
 import com.example.dilauro_aios.ui.theme.NeonCyan
 import com.example.dilauro_aios.ui.theme.TextSecondary
 import com.example.dilauro_aios.viewmodel.AiosViewModel
+import com.example.dilauro_aios.viewmodel.GenerativeStudioViewModel
 
 class MainActivity : ComponentActivity() {
     private val viewModel: AiosViewModel by viewModels()
+    private val generativeViewModel: GenerativeStudioViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +126,21 @@ class MainActivity : ComponentActivity() {
                                 ),
                                 modifier = Modifier.testTag("nav_item_security")
                             )
+
+                            NavigationBarItem(
+                                selected = currentScreen in listOf("generative_studio", "image_studio", "audio_transcribe", "music_generator", "gemini_chat", "veo_video"),
+                                onClick = { currentScreen = "generative_studio" },
+                                icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "AI Studio") },
+                                label = { Text("AI Studio", fontSize = 10.sp) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = DeepBackground,
+                                    selectedTextColor = NeonCyan,
+                                    indicatorColor = NeonCyan,
+                                    unselectedIconColor = TextSecondary,
+                                    unselectedTextColor = TextSecondary
+                                ),
+                                modifier = Modifier.testTag("nav_item_ai_studio")
+                            )
                         }
                     }
                 ) { innerPadding ->
@@ -155,6 +172,30 @@ class MainActivity : ComponentActivity() {
                             )
                             "entanglement" -> EntanglementScreen(
                                 viewModel = viewModel,
+                                onBack = { currentScreen = "dashboard" }
+                            )
+                            "generative_studio" -> GenerativeStudioScreen(
+                                viewModel = generativeViewModel,
+                                onBack = { currentScreen = "dashboard" }
+                            )
+                            "image_studio" -> ImageStudioScreen(
+                                viewModel = generativeViewModel,
+                                onBack = { currentScreen = "dashboard" }
+                            )
+                            "audio_transcribe" -> AudioTranscriberScreen(
+                                viewModel = generativeViewModel,
+                                onBack = { currentScreen = "dashboard" }
+                            )
+                            "music_generator" -> MusicGeneratorScreen(
+                                viewModel = generativeViewModel,
+                                onBack = { currentScreen = "dashboard" }
+                            )
+                            "gemini_chat" -> GeminiChatbotScreen(
+                                viewModel = generativeViewModel,
+                                onBack = { currentScreen = "dashboard" }
+                            )
+                            "veo_video" -> VeoVideoGeneratorScreen(
+                                viewModel = generativeViewModel,
                                 onBack = { currentScreen = "dashboard" }
                             )
                             else -> DashboardScreen(

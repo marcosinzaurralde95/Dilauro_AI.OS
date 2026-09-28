@@ -184,6 +184,23 @@ class AiosViewModel : ViewModel() {
             val newAlloc = (mem.allocatedMb + delta).coerceIn(2800, mem.totalRamMb - 500)
             mem.copy(allocatedMb = newAlloc)
         }
+
+        // 7. Update Capsule Sandbox resource consumption
+        _capsules.update { list ->
+            list.map { cap ->
+                if (cap.status == CapsuleStatus.RUNNING) {
+                    val cpuJitter = (cap.cpuPercent + (Random.nextFloat() * 1.2f - 0.6f)).coerceIn(1.0f, cap.cpuQuotaPercent)
+                    val memDelta = Random.nextInt(-2, 3)
+                    val newMem = (cap.memoryUsageMb + memDelta).coerceIn(28, cap.memoryLimitMb)
+                    cap.copy(
+                        cpuPercent = cpuJitter,
+                        memoryUsageMb = newMem,
+                        uptimeSeconds = cap.uptimeSeconds + 1,
+                        syscallCount = cap.syscallCount + Random.nextInt(10, 35)
+                    )
+                } else cap
+            }
+        }
     }
 
     // --- Scheduler Operations & AI Workload Balancing ---
@@ -530,16 +547,75 @@ class AiosViewModel : ViewModel() {
         }
     }
 
-    fun deployCapsule(name: String, capabilities: List<String>) {
-        val nextId = UUID.randomUUID().toString().take(8)
+    fun terminateCapsule(id: String) {
+        _capsules.update { list ->
+            list.map { capsule ->
+                if (capsule.id == id) {
+                    capsule.copy(
+                        status = CapsuleStatus.TERMINATED,
+                        cpuPercent = 0.0f,
+                        memoryUsageMb = 0,
+                        exitCode = 0
+                    )
+                } else capsule
+            }
+        }
+        // Audit log in Neural Shield
+        val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val threat = SecurityThreat(
+            id = UUID.randomUUID().toString(),
+            timestamp = sdf.format(Date()),
+            sourceCapsule = id,
+            syscallName = "sys_capsule_terminate",
+            anomalyScore = 0.12f,
+            severity = ThreatSeverity.INFO,
+            actionTaken = ThreatAction.QUARANTINED,
+            details = "Sandbox container '$id' terminated by operator command. Resources reclaimed to DAM pool."
+        )
+        _securityThreats.update { (listOf(threat) + it).take(20) }
+    }
+
+    fun restartCapsule(id: String) {
+        _capsules.update { list ->
+            list.map { capsule ->
+                if (capsule.id == id) {
+                    capsule.copy(
+                        status = CapsuleStatus.RUNNING,
+                        memoryUsageMb = Random.nextInt(90, 210),
+                        cpuPercent = Random.nextFloat() * 6f + 2f,
+                        uptimeSeconds = 0L,
+                        exitCode = null
+                    )
+                } else capsule
+            }
+        }
+    }
+
+    fun purgeTerminatedCapsules() {
+        _capsules.update { list -> list.filter { it.status != CapsuleStatus.TERMINATED } }
+    }
+
+    fun deployCapsule(
+        name: String,
+        capabilities: List<String>,
+        memoryLimitMb: Int = 256,
+        cpuQuotaPercent: Float = 25.0f,
+        targetNode: String = "Local Host (ARM64)"
+    ) {
+        val nextId = "cap_" + UUID.randomUUID().toString().take(6)
         val newCapsule = Capsule(
             id = nextId,
-            name = name.ifBlank { "capsule_$nextId" },
+            name = name.ifBlank { "sandbox_$nextId" },
             version = "1.0.0",
             status = CapsuleStatus.RUNNING,
-            memoryUsageMb = Random.nextInt(80, 240),
-            cpuPercent = Random.nextFloat() * 12f,
-            capabilities = if (capabilities.isEmpty()) listOf("capsule.fs:ro", "capsule.sys:telemetry") else capabilities
+            memoryUsageMb = Random.nextInt(75, (memoryLimitMb * 0.6f).toInt().coerceAtLeast(80)),
+            cpuPercent = Random.nextFloat() * 7f + 1.5f,
+            capabilities = if (capabilities.isEmpty()) listOf("capsule.fs:ro", "capsule.sys:telemetry") else capabilities,
+            targetNode = targetNode,
+            wasiModuleSizeKb = Random.nextInt(850, 2400),
+            memoryLimitMb = memoryLimitMb,
+            cpuQuotaPercent = cpuQuotaPercent,
+            uptimeSeconds = 0L
         )
         _capsules.update { it + newCapsule }
     }
@@ -1184,21 +1260,37 @@ class AiosViewModel : ViewModel() {
     private fun initialCapsules(): List<Capsule> = listOf(
         Capsule(
             id = "cap_liquid",
-            name = "Liquid Desk Shell",
+            name = "Liquid Desk Compositor",
             version = "1.2.0",
             status = CapsuleStatus.RUNNING,
             memoryUsageMb = 210,
             cpuPercent = 4.2f,
-            capabilities = listOf("capsule.ui:compositor", "capsule.fs:ro", "capsule.sys:input")
+            capabilities = listOf("capsule.ui:compositor", "capsule.fs:ro", "capsule.sys:input"),
+            targetNode = "Local Host (ARM64)",
+            wasiModuleSizeKb = 1840,
+            memoryLimitMb = 512,
+            cpuQuotaPercent = 30.0f,
+            uptimeSeconds = 3420L,
+            threadCount = 6,
+            networkIoKbps = 18.2f,
+            syscallCount = 42800L
         ),
         Capsule(
             id = "cap_sentry",
-            name = "Neural Sentry",
+            name = "Neural Sentry Sentinel",
             version = "1.0.4",
             status = CapsuleStatus.RUNNING,
             memoryUsageMb = 85,
             cpuPercent = 1.8f,
-            capabilities = listOf("capsule.sec:ebpf", "capsule.ipc:audit", "capsule.sys:telemetry")
+            capabilities = listOf("capsule.sec:ebpf", "capsule.ipc:audit", "capsule.sys:telemetry"),
+            targetNode = "Local Host (ARM64)",
+            wasiModuleSizeKb = 920,
+            memoryLimitMb = 192,
+            cpuQuotaPercent = 15.0f,
+            uptimeSeconds = 3420L,
+            threadCount = 2,
+            networkIoKbps = 4.1f,
+            syscallCount = 18500L
         ),
         Capsule(
             id = "cap_indexer",
@@ -1207,7 +1299,49 @@ class AiosViewModel : ViewModel() {
             status = CapsuleStatus.RUNNING,
             memoryUsageMb = 340,
             cpuPercent = 6.5f,
-            capabilities = listOf("capsule.fs:rw", "capsule.neural:faiss", "capsule.sys:timer")
+            capabilities = listOf("capsule.fs:rw", "capsule.neural:faiss", "capsule.sys:timer"),
+            targetNode = "Local Host (ARM64)",
+            wasiModuleSizeKb = 2150,
+            memoryLimitMb = 512,
+            cpuQuotaPercent = 40.0f,
+            uptimeSeconds = 2810L,
+            threadCount = 4,
+            networkIoKbps = 64.8f,
+            syscallCount = 59300L
+        ),
+        Capsule(
+            id = "cap_gemini_vision",
+            name = "Gemini Vision Pipeline",
+            version = "3.1.0",
+            status = CapsuleStatus.RUNNING,
+            memoryUsageMb = 412,
+            cpuPercent = 11.4f,
+            capabilities = listOf("capsule.ai:gemini", "capsule.shm:read", "capsule.fs:ro"),
+            targetNode = "Local Host (ARM64)",
+            wasiModuleSizeKb = 3420,
+            memoryLimitMb = 768,
+            cpuQuotaPercent = 50.0f,
+            uptimeSeconds = 1240L,
+            threadCount = 8,
+            networkIoKbps = 128.5f,
+            syscallCount = 82100L
+        ),
+        Capsule(
+            id = "cap_lyria_dsp",
+            name = "Lyria Audio Synthesizer",
+            version = "3.0.2",
+            status = CapsuleStatus.RUNNING,
+            memoryUsageMb = 178,
+            cpuPercent = 4.8f,
+            capabilities = listOf("capsule.audio:out", "capsule.ai:lyria", "capsule.sys:clock"),
+            targetNode = "Local Host (ARM64)",
+            wasiModuleSizeKb = 1640,
+            memoryLimitMb = 384,
+            cpuQuotaPercent = 25.0f,
+            uptimeSeconds = 1590L,
+            threadCount = 3,
+            networkIoKbps = 32.0f,
+            syscallCount = 28400L
         ),
         Capsule(
             id = "cap_entangle",
@@ -1216,7 +1350,32 @@ class AiosViewModel : ViewModel() {
             status = CapsuleStatus.IDLE,
             memoryUsageMb = 120,
             cpuPercent = 0.8f,
-            capabilities = listOf("capsule.net:libp2p", "capsule.net:mdns", "capsule.ipc:bridge")
+            capabilities = listOf("capsule.net:libp2p", "capsule.net:mdns", "capsule.ipc:bridge"),
+            targetNode = "Raspberry Pi 5 (Node-02)",
+            wasiModuleSizeKb = 1420,
+            memoryLimitMb = 256,
+            cpuQuotaPercent = 20.0f,
+            uptimeSeconds = 980L,
+            threadCount = 2,
+            networkIoKbps = 8.4f,
+            syscallCount = 9200L
+        ),
+        Capsule(
+            id = "cap_untrusted_plugin",
+            name = "Third-Party Micro-Sandbox",
+            version = "0.4.1",
+            status = CapsuleStatus.PAUSED,
+            memoryUsageMb = 64,
+            cpuPercent = 0.0f,
+            capabilities = listOf("capsule.sandbox:isolated"),
+            targetNode = "Local Host (ARM64)",
+            wasiModuleSizeKb = 780,
+            memoryLimitMb = 128,
+            cpuQuotaPercent = 10.0f,
+            uptimeSeconds = 410L,
+            threadCount = 1,
+            networkIoKbps = 0.0f,
+            syscallCount = 3100L
         )
     )
 

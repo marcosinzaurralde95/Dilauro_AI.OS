@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dilauro_aios.R
+import com.example.dilauro_aios.ui.components.CapsuleSandboxDashboard
 import com.example.dilauro_aios.ui.components.CyberCard
 import com.example.dilauro_aios.ui.components.MetricBadge
 import com.example.dilauro_aios.ui.components.MlSchedulerDashboard
@@ -294,6 +295,242 @@ fun DashboardScreen(
             )
         }
 
+        // Live Capsule Sandbox Dashboard (Running Isolated Containers & Termination)
+        item {
+            CapsuleSandboxDashboard(
+                viewModel = viewModel,
+                isCompact = true,
+                onViewFullSandbox = { onNavigate("capsules") }
+            )
+        }
+
+        // Neural Intelligence & Generative Studio Section
+        item {
+            Column(modifier = Modifier.padding(top = 4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Neural Creative & Intelligence Lab",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "Gemini 3 Vision · Audio Transcriber · Lyria 3 Music",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary
+                        )
+                    }
+                    TextButton(onClick = { onNavigate("generative_studio") }) {
+                        Text("Open Studio", color = NeonCyan, fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+
+        // 1. Create & Edit Images Card
+        item {
+            CyberCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate("image_studio") }
+                    .testTag("nav_card_image_studio"),
+                borderColor = BorderCyan
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .background(NeonCyan.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .border(1.dp, NeonCyan, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.AutoFixHigh, contentDescription = "Create & Edit Images", tint = NeonCyan, modifier = Modifier.size(24.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Create & Edit Images", style = MaterialTheme.typography.titleSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            MetricBadge(text = "GEMINI-3", textColor = NeonCyan, backgroundColor = DeepBackground)
+                        }
+                        Text(
+                            "Text-to-image prompts & interactive image-to-image refinement with aspect ratios and resolutions.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextSecondary)
+                }
+            }
+        }
+
+        // 2. Transcribe Audio Card
+        item {
+            CyberCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate("audio_transcribe") }
+                    .testTag("nav_card_audio_transcribe"),
+                borderColor = NeonPurple.copy(alpha = 0.6f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .background(NeonPurple.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .border(1.dp, NeonPurple, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Mic, contentDescription = "Transcribe Audio", tint = NeonPurple, modifier = Modifier.size(24.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Transcribe Audio", style = MaterialTheme.typography.titleSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            MetricBadge(text = "GEMINI-3.5", textColor = NeonPurple, backgroundColor = DeepBackground)
+                        }
+                        Text(
+                            "Real-time voice memo recording, acoustic telemetry decoding, summaries, and action item extraction.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextSecondary)
+                }
+            }
+        }
+
+        // 3. Generate Music Card
+        item {
+            CyberCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate("music_generator") }
+                    .testTag("nav_card_music_gen"),
+                borderColor = EmeraldSecurity.copy(alpha = 0.6f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .background(EmeraldSecurity.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .border(1.dp, EmeraldSecurity, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.MusicNote, contentDescription = "Generate Music", tint = EmeraldSecurity, modifier = Modifier.size(24.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Generate Music", style = MaterialTheme.typography.titleSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            MetricBadge(text = "LYRIA-3", textColor = EmeraldSecurity, backgroundColor = DeepBackground)
+                        }
+                        Text(
+                            "Synthesize clips and tracks using lyria-3-clip-preview and lyria-3-pro-preview with live waveform equalizer.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextSecondary)
+                }
+            }
+        }
+
+        // 4. Gemini Chatbot Card
+        item {
+            CyberCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate("gemini_chat") }
+                    .testTag("nav_card_gemini_chat"),
+                borderColor = NeonCyan.copy(alpha = 0.6f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .background(NeonCyan.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .border(1.dp, NeonCyan, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Chat, contentDescription = "Gemini Copilot", tint = NeonCyan, modifier = Modifier.size(24.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Gemini Neural Copilot", style = MaterialTheme.typography.titleSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            MetricBadge(text = "MULTI-TURN", textColor = NeonCyan, backgroundColor = DeepBackground)
+                        }
+                        Text(
+                            "Multi-turn conversational assistant with role-based system instructions (gemini-3.1-pro, 3.5-flash, 3.1-lite).",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextSecondary)
+                }
+            }
+        }
+
+        // 5. Veo 3 Video Generation & Photo Animation Card
+        item {
+            CyberCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate("veo_video") }
+                    .testTag("nav_card_veo_video"),
+                borderColor = ElectricViolet.copy(alpha = 0.6f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .background(ElectricViolet.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .border(1.dp, ElectricViolet, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Videocam, contentDescription = "Veo Video", tint = ElectricViolet, modifier = Modifier.size(24.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Veo 3 Video & Animation", style = MaterialTheme.typography.titleSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            MetricBadge(text = "VEO-3.1", textColor = ElectricViolet, backgroundColor = DeepBackground)
+                        }
+                        Text(
+                            "Text-to-video & photo animation in 16:9 and 9:16 using veo-3.1-fast-generate-preview.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextSecondary)
+                }
+            }
+        }
+
         // Subsystems Section
         item {
             Text(
@@ -367,6 +604,39 @@ fun DashboardScreen(
                 icon = Icons.Default.Hub,
                 badgeColor = TextCyan,
                 onClick = { onNavigate("entanglement") }
+            )
+        }
+
+        item {
+            SubsystemNavCard(
+                title = "Neural Vision & Image Editor",
+                tag = "GEMINI-3 MULTIMODAL",
+                description = "Prompt-based visual asset synthesis and interactive image-to-image refinement with aspect ratio scaling.",
+                icon = Icons.Default.AutoFixHigh,
+                badgeColor = NeonCyan,
+                onClick = { onNavigate("image_studio") }
+            )
+        }
+
+        item {
+            SubsystemNavCard(
+                title = "Acoustic Intel & Transcriber",
+                tag = "GEMINI-3.5 ACOUSTIC",
+                description = "Microphone voice memos, audio telemetry decoding, automatic executive summaries, and action item extraction.",
+                icon = Icons.Default.Mic,
+                badgeColor = NeonPurple,
+                onClick = { onNavigate("audio_transcribe") }
+            )
+        }
+
+        item {
+            SubsystemNavCard(
+                title = "Neural Music Synthesizer",
+                tag = "LYRIA-3 ENGINE",
+                description = "AI soundtrack synthesis using lyria-3-clip-preview and lyria-3-pro-preview with live waveform equalizer.",
+                icon = Icons.Default.MusicNote,
+                badgeColor = EmeraldSecurity,
+                onClick = { onNavigate("music_generator") }
             )
         }
     }

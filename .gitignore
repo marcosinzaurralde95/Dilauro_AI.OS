@@ -1,7 +1,56 @@
+# Built application files
+*.apk
+*.aar
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+app/build/
+.build-outputs/
+
+# Gradle files
+.gradle/
+
+# Local configuration file
+local.properties
+
+# Log Files
+*.log
+
+# Android Studio captures folder
+captures/
+
+# IntelliJ IDEA
+*.iml
+.idea/
+
+# Kotlin
+.kotlin/
+
+# Secrets & Environment variables
+.env
+.env.*
+.env.local
+!.env.example
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Other
 /target
 Cargo.lock
 *.swp
 *.swo
-.DS_Store
 *.o
 *.d
+
