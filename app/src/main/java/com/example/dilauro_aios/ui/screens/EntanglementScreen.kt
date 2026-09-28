@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dilauro_aios.ui.components.CyberCard
 import com.example.dilauro_aios.ui.components.MetricBadge
+import com.example.dilauro_aios.ui.components.TelemetryColumn
 import com.example.dilauro_aios.ui.theme.*
 import com.example.dilauro_aios.viewmodel.AiosViewModel
 

@@ -47,6 +47,7 @@ fun MetricBadge(
 fun ProcessTypeBadge(type: ProcessType, modifier: Modifier = Modifier) {
     val (text, color, bg) = when (type) {
         ProcessType.INTERACTIVE -> Triple("INTERACTIVE", NeonCyan, Color(0xFF003B46))
+        ProcessType.AI_INFERENCE -> Triple("AI INFERENCE", Color(0xFFC084FC), Color(0xFF3B0764))
         ProcessType.BATCH -> Triple("BATCH", WarningAmber, Color(0xFF3E2723))
         ProcessType.DAEMON -> Triple("DAEMON", ElectricViolet, Color(0xFF2C1654))
     }

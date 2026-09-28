@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.dilauro_aios.ui.theme.BorderSubtle
 import com.example.dilauro_aios.ui.theme.CardSurface
 
@@ -36,6 +37,28 @@ fun CyberCard(
         Column(
             modifier = Modifier.padding(16.dp),
             content = content
+        )
+    }
+}
+
+@Composable
+fun TelemetryColumn(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        androidx.compose.material3.Text(
+            text = label,
+            style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+            color = com.example.dilauro_aios.ui.theme.TextTertiary,
+            fontSize = 10.sp
+        )
+        androidx.compose.material3.Text(
+            text = value,
+            style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+            color = com.example.dilauro_aios.ui.theme.TextPrimary,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
         )
     }
 }

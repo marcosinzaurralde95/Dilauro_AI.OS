@@ -2,6 +2,7 @@ package com.example.dilauro_aios.model
 
 enum class ProcessType {
     INTERACTIVE,
+    AI_INFERENCE,
     BATCH,
     DAEMON
 }
@@ -10,6 +11,13 @@ enum class ProcessState {
     READY,
     RUNNING,
     BLOCKED
+}
+
+enum class SchedulerPolicyMode {
+    BALANCED_ADAPTIVE,
+    AI_TURBO_INFERENCE,
+    ULTRA_LOW_LATENCY,
+    EFFICIENCY_SAVER
 }
 
 /**
@@ -27,7 +35,33 @@ data class Process(
     val predictedBurstMs: Long = 15,
     val dynamicScore: Float = 0.85f,
     val contextSwitches: Long = 0,
-    val capsuleId: String? = null
+    val capsuleId: String? = null,
+    val assignedCoreId: Int = 0,
+    val aiWorkloadWeight: Float = 0.2f, // 0.0 to 1.0 (tensor / neural ratio)
+    val quantumTimeSliceMs: Int = 16,
+    val preemptionDeadlineMs: Long = 24,
+    val tensorFlopsEst: String = "N/A"
+)
+
+data class CpuCoreState(
+    val coreId: Int,
+    val name: String,
+    val type: String,
+    val loadPercent: Float,
+    val tempCelsius: Float,
+    val frequencyGhz: Float,
+    val activeProcessName: String?,
+    val isTensorCore: Boolean = false
+)
+
+data class AiWorkloadTelemetry(
+    val tensorTflops: Float = 3.84f,
+    val npuUtilizationPercent: Float = 76.5f,
+    val activeAiPipelinesCount: Int = 3,
+    val neuralCacheHitRate: Float = 96.8f,
+    val currentPolicy: SchedulerPolicyMode = SchedulerPolicyMode.BALANCED_ADAPTIVE,
+    val totalAiInferenceBursts: Long = 184520,
+    val latencyP99Ms: Float = 3.2f
 )
 
 data class SchedulerTelemetry(
@@ -36,6 +70,7 @@ data class SchedulerTelemetry(
     val contextSwitchesPerSec: Int = 142,
     val avgLatencyMs: Float = 2.4f,
     val mlPredictionAccuracy: Float = 94.2f,
-    val activeTasksCount: Int = 5,
-    val timeSliceMs: Int = 20
+    val activeTasksCount: Int = 6,
+    val timeSliceMs: Int = 16,
+    val policyMode: SchedulerPolicyMode = SchedulerPolicyMode.BALANCED_ADAPTIVE
 )

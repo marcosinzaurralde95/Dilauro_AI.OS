@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.sp
 import com.example.dilauro_aios.R
 import com.example.dilauro_aios.ui.components.CyberCard
 import com.example.dilauro_aios.ui.components.MetricBadge
+import com.example.dilauro_aios.ui.components.MlSchedulerDashboard
+import com.example.dilauro_aios.ui.components.NeuralShieldStatusDashboard
+import com.example.dilauro_aios.ui.components.SynapseFsTreeMapDashboard
 import com.example.dilauro_aios.ui.theme.*
 import com.example.dilauro_aios.viewmodel.AiosViewModel
 
@@ -43,6 +46,7 @@ fun DashboardScreen(
     val memTele by viewModel.memoryTelemetry.collectAsState()
     val threatGauge by viewModel.threatGauge.collectAsState()
     val capsules by viewModel.capsules.collectAsState()
+    val aiTele by viewModel.aiWorkloadTelemetry.collectAsState()
     val isRunning by viewModel.simulationRunning.collectAsState()
 
     LazyColumn(
@@ -261,6 +265,33 @@ fun DashboardScreen(
                     )
                 }
             }
+        }
+
+        // Live D-Kernel ML Scheduler Dashboard (CPU Prioritization & AI Workload Balancing)
+        item {
+            MlSchedulerDashboard(
+                viewModel = viewModel,
+                isCompact = true,
+                onViewFullScheduler = { onNavigate("scheduler") }
+            )
+        }
+
+        // Live Neural Shield Status Dashboard (Active Protocols & Real-Time Privacy Alerts)
+        item {
+            NeuralShieldStatusDashboard(
+                viewModel = viewModel,
+                isCompact = true,
+                onViewAllAlerts = { onNavigate("security") }
+            )
+        }
+
+        // Live SynapseFS TreeMap Dashboard (Semantic File Indexing & Retrieval Patterns)
+        item {
+            SynapseFsTreeMapDashboard(
+                viewModel = viewModel,
+                isCompact = true,
+                onViewFullFs = { onNavigate("synapse") }
+            )
         }
 
         // Subsystems Section

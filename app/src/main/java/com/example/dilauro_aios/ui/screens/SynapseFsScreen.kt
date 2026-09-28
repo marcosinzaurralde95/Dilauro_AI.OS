@@ -20,6 +20,7 @@ import com.example.dilauro_aios.model.FileCategory
 import com.example.dilauro_aios.model.SynapseFile
 import com.example.dilauro_aios.ui.components.CyberCard
 import com.example.dilauro_aios.ui.components.MetricBadge
+import com.example.dilauro_aios.ui.components.SynapseFsTreeMapDashboard
 import com.example.dilauro_aios.ui.theme.*
 import com.example.dilauro_aios.viewmodel.AiosViewModel
 
@@ -33,6 +34,7 @@ fun SynapseFsScreen(
     val query by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
+    var selectedTab by remember { mutableIntStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
     var selectedFile by remember { mutableStateOf<SynapseFile?>(null) }
 
@@ -44,7 +46,7 @@ fun SynapseFsScreen(
                 title = {
                     Column {
                         Text("SynapseFS Semantic Filesystem", style = MaterialTheme.typography.titleLarge, color = TextPrimary)
-                        Text("Vector Similarity Search & Contextual Metadata", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text("Vector Similarity Search & TreeMap Telemetry", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
                     }
                 },
                 navigationIcon = {
@@ -61,169 +63,238 @@ fun SynapseFsScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Semantic Search Input
-            item {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { viewModel.onSearchQueryChanged(it) },
-                    modifier = Modifier.fillMaxWidth().testTag("synapse_search_input"),
-                    placeholder = { Text("Search by meaning, e.g. 'burst weights', 'wasi', 'threat'") },
-                    leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = NeonCyan)
-                    },
-                    trailingIcon = {
-                        if (query.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear", tint = TextSecondary)
-                            }
+            // View Mode Tab Row
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = DarkSurface,
+                contentColor = NeonCyan,
+                modifier = Modifier.fillMaxWidth().testTag("synapse_tabs")
+            ) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Default.GridView, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Text("TreeMap Visualizer", fontSize = 12.sp)
                         }
                     },
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = NeonCyan,
-                        unfocusedBorderColor = BorderSubtle,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary
-                    )
+                    modifier = Modifier.testTag("tab_treemap")
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Default.ListAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Text("All Inodes (${searchResults.size})", fontSize = 12.sp)
+                        }
+                    },
+                    modifier = Modifier.testTag("tab_inodes")
                 )
             }
 
-            // Quick Tag Chips
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            if (selectedTab == 0) {
+                // TAB 0: SEMANTIC TREEMAP VISUALIZER & TELEMETRY
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    listOf("All", "kernel", "ml", "wasi", "security").forEach { tag ->
-                        val isSelected = (tag == "All" && query.isEmpty()) || query.equals(tag, ignoreCase = true)
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { viewModel.onSearchQueryChanged(if (tag == "All") "" else tag) },
-                            label = { Text("#$tag", fontSize = 11.sp) }
+                    item {
+                        SynapseFsTreeMapDashboard(
+                            viewModel = viewModel,
+                            isCompact = false
                         )
                     }
                 }
-            }
-
-            // Results count
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Semantic Nodes Indexed (${searchResults.size})",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = if (query.isNotBlank()) "Vector Ranked by Cosine Similarity" else "All Inode Descriptors",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextTertiary
-                    )
-                }
-            }
-
-            // File items
-            items(searchResults, key = { it.file.id }) { result ->
-                val file = result.file
-                CyberCard(
+            } else {
+                // TAB 1: ALL INODES LIST & SEARCH
+                LazyColumn(
                     modifier = Modifier
-                        .clickable { selectedFile = file }
-                        .testTag("file_card_${file.id}"),
-                    borderColor = if (result.similarityScore > 0.85f && query.isNotBlank()) NeonCyan else BorderSubtle
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    // Semantic Search Input
+                    item {
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { viewModel.onSearchQueryChanged(it) },
+                            modifier = Modifier.fillMaxWidth().testTag("synapse_search_input"),
+                            placeholder = { Text("Search by meaning, e.g. 'burst weights', 'wasi', 'threat'") },
+                            leadingIcon = {
+                                Icon(Icons.Default.Search, contentDescription = "Search", tint = NeonCyan)
+                            },
+                            trailingIcon = {
+                                if (query.isNotEmpty()) {
+                                    IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
+                                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = TextSecondary)
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = NeonCyan,
+                                unfocusedBorderColor = BorderSubtle,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            )
+                        )
+                    }
+
+                    // Quick Tag Chips
+                    item {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                imageVector = when (file.category) {
-                                    FileCategory.KERNEL_CORE -> Icons.Default.Memory
-                                    FileCategory.NEURAL_WEIGHTS -> Icons.Default.Psychology
-                                    FileCategory.WASI_BYTECODE -> Icons.Default.Terminal
-                                    FileCategory.SECURITY_POLICY -> Icons.Default.Shield
-                                    FileCategory.TELEMETRY_LOGS -> Icons.Default.ListAlt
-                                    FileCategory.USER_DATA -> Icons.Default.Description
-                                },
-                                contentDescription = null,
-                                tint = NeonCyan,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Column {
-                                Text(
-                                    text = file.filename,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = TextPrimary,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = "${file.path} · ${file.sizeKb} KB",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = TextTertiary,
-                                    fontFamily = FontFamily.Monospace
+                            listOf("All", "kernel", "ml", "wasi", "security").forEach { tag ->
+                                val isSelected = (tag == "All" && query.isEmpty()) || query.equals(tag, ignoreCase = true)
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { viewModel.onSearchQueryChanged(if (tag == "All") "" else tag) },
+                                    label = { Text("#$tag", fontSize = 11.sp) }
                                 )
                             }
                         }
-
-                        MetricBadge(
-                            text = String.format("%.2f Sim", result.similarityScore),
-                            textColor = if (result.similarityScore > 0.8f) NeonCyan else TextSecondary,
-                            backgroundColor = CardSurfaceHighlight
-                        )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    // Results count
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Semantic Nodes Indexed (${searchResults.size})",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = if (query.isNotBlank()) "Vector Ranked by Cosine Similarity" else "All Inode Descriptors",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextTertiary
+                            )
+                        }
+                    }
 
-                    Text(
-                        text = file.semanticDescription,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary,
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp
-                    )
+                    // File items
+                    items(searchResults, key = { it.file.id }) { result ->
+                        val file = result.file
+                        CyberCard(
+                            modifier = Modifier
+                                .clickable { selectedFile = file }
+                                .testTag("file_card_${file.id}"),
+                            borderColor = if (result.similarityScore > 0.85f && query.isNotBlank()) NeonCyan else BorderSubtle
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = when (file.category) {
+                                            FileCategory.KERNEL_CORE -> Icons.Default.Memory
+                                            FileCategory.NEURAL_WEIGHTS -> Icons.Default.Psychology
+                                            FileCategory.WASI_BYTECODE -> Icons.Default.Terminal
+                                            FileCategory.SECURITY_POLICY -> Icons.Default.Shield
+                                            FileCategory.TELEMETRY_LOGS -> Icons.Default.ListAlt
+                                            FileCategory.USER_DATA -> Icons.Default.Description
+                                        },
+                                        contentDescription = null,
+                                        tint = NeonCyan,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Column {
+                                        Text(
+                                            text = file.filename,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = TextPrimary,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            text = "${file.path} · ${file.sizeKb} KB · ${file.cluster}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = TextTertiary,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    }
+                                }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            file.tags.take(3).forEach { t ->
                                 MetricBadge(
-                                    text = "#$t",
-                                    textColor = TextCyan,
-                                    backgroundColor = DarkSurface
+                                    text = String.format("%.2f Sim", result.similarityScore),
+                                    textColor = if (result.similarityScore > 0.8f) NeonCyan else TextSecondary,
+                                    backgroundColor = CardSurfaceHighlight
                                 )
                             }
-                        }
 
-                        IconButton(
-                            onClick = { viewModel.deleteSynapseFile(file.id) },
-                            modifier = Modifier.size(32.dp).testTag("delete_file_${file.id}")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = "Delete File",
-                                tint = ThreatCrimson,
-                                modifier = Modifier.size(18.dp)
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = file.semanticDescription,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondary,
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp
                             )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    file.tags.take(3).forEach { t ->
+                                        MetricBadge(
+                                            text = "#$t",
+                                            textColor = TextCyan,
+                                            backgroundColor = DarkSurface
+                                        )
+                                    }
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(
+                                        onClick = { viewModel.simulateSynapseRetrieval(file.id) },
+                                        modifier = Modifier.size(32.dp).testTag("read_file_${file.id}")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = "Simulate Read",
+                                            tint = NeonCyan,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+
+                                    IconButton(
+                                        onClick = { viewModel.deleteSynapseFile(file.id) },
+                                        modifier = Modifier.size(32.dp).testTag("delete_file_${file.id}")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.DeleteOutline,
+                                            contentDescription = "Delete File",
+                                            tint = ThreatCrimson,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -245,10 +316,11 @@ fun SynapseFsScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("VFS Path: ${f.path}${f.filename}", fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = TextSecondary)
-                    Text("Category: ${f.category.name}", color = TextSecondary)
+                    Text("Category: ${f.category.name} · ${f.cluster}", color = TextSecondary)
                     Text("Context Affinity: ${f.contextAffinity}", color = NeonCyan)
                     Text("Semantic Summary: ${f.semanticDescription}", color = TextSecondary)
-                    Text("Access Count: ${f.accessCount} reads", color = TextSecondary)
+                    Text("Access Count: ${f.accessCount} reads · Latency: ${f.retrievalLatencyMs} ms", color = TextSecondary)
+                    Text("Prefetch: ${f.prefetchAffinity}", color = TextCyan, fontSize = 11.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("Vector Embedding Projection (d=4):", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
                     Text(
